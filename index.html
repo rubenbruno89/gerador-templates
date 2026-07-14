@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
+<meta name="theme-color" content="#075e54">
+<title>Gerador de Templates WhatsApp</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, sans-serif; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: linear-gradient(135deg, #075e54 0%, #128c7e 50%, #25d366 100%);
+    min-height: 100vh;
+    padding: clamp(10px, 3vw, 20px);
+    color: #333;
+    -webkit-text-size-adjust: 100%;
+  }
+  .container {
+    max-width: 1100px; margin: 0 auto; background: #fff;
+    border-radius: clamp(10px, 2vw, 16px);
+    box-shadow: 0 20px 60px rgba(0,0,0,0.3); overflow: hidden;
+  }
+  header {
+    background: #075e54; color: white;
+    padding: clamp(15px, 3vw, 25px) clamp(15px, 3vw, 30px);
+    display: flex; align-items: center; gap: clamp(10px, 2vw, 15px);
+  }
+  header .icon { font-size: clamp(1.5rem, 5vw, 2rem); flex-shrink: 0; }
+  header h1 { font-size: clamp(1.1rem, 3.5vw, 1.6rem); line-height: 1.2; }
+  header p { opacity: 0.85; font-size: clamp(0.75rem, 2.5vw, 0.9rem); margin-top: 4px; }
+  .content { display: grid; grid-template-columns: 1fr 1fr; gap: 0; }
+  .form-area { padding: clamp(15px, 3vw, 30px); background: #f7f9fa; border-right: 1px solid #e0e0e0; }
+  .preview-area { padding: clamp(15px, 3vw, 30px); background: #e5ddd5; }
+  label { display: block; font-weight: 600; margin-bottom: 6px; color: #075e54; font-size: clamp(0.8rem, 2.5vw, 0.9rem); }
+  select, input {
+    width: 100%; padding: clamp(10px, 2vw, 11px) clamp(12px, 2vw, 14px);
+    border: 2px solid #ddd; border-radius: 8px; font-size: clamp(0.9rem, 2.5vw, 0.95rem);
+    margin-bottom: clamp(12px, 2vw, 16px); transition: border 0.2s;
+    -webkit-appearance: none; appearance: none;
+  }
+  select:focus, input:focus { border-color: #25d366; outline: none; box-shadow: 0 0 0 3px rgba(37, 211, 102, 0.15); }
+  .template-selector { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: clamp(15px, 3vw, 20px); }
+  .template-btn {
+    padding: clamp(10px, 2vw, 12px) clamp(8px, 2vw, 10px); border: 2px solid #ddd;
+    background: white; border-radius: 8px; cursor: pointer;
+    font-size: clamp(0.75rem, 2.2vw, 0.85rem); transition: all 0.2s;
+    text-align: left; min-height: 44px; display: flex; align-items: center; gap: 6px; word-break: break-word;
+  }
+  .template-btn:hover { border-color: #25d366; transform: translateY(-1px); }
+  .template-btn.active { background: #075e54; color: white; border-color: #075e54; }
+  .preview-box {
+    background: #dcf8c6; padding: clamp(12px, 2.5vw, 18px); border-radius: 10px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1); font-size: clamp(0.85rem, 2.5vw, 0.95rem);
+    line-height: 1.6; white-space: pre-wrap; word-wrap: break-word;
+    min-height: clamp(200px, 30vw, 300px); max-height: 500px;
+    overflow-y: auto; position: relative; margin-bottom: 15px;
+  }
+  .preview-box strong { font-weight: 700; }
+  .preview-box em { font-style: italic; }
+  .actions { display: flex; gap: 10px; margin-top: 12px; flex-wrap: wrap; }
+  button.action {
+    flex: 1 1 calc(50% - 5px); min-width: 120px; padding: clamp(10px, 2vw, 12px);
+    border: none; border-radius: 8px; font-weight: 600; cursor: pointer;
+    font-size: clamp(0.85rem, 2.5vw, 0.95rem); transition: transform 0.1s;
+    min-height: 44px; touch-action: manipulation;
+  }
+  button.action:hover { transform: translateY(-2px); }
+  button.action:active { transform: translateY(0); }
+  .btn-copy { background: #25d366; color: white; }
+  .btn-copy-raw { background: #075e54; color: white; }
+  .btn-clear { background: #e0e0e0; color: #333; }
+  .toast {
+    position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
+    background: #075e54; color: white; padding: 12px 25px; border-radius: 30px;
+    opacity: 0; transition: opacity 0.3s; pointer-events: none;
+    font-weight: 600; font-size: 0.9rem; z-index: 1000; max-width: 90vw; text-align: center;
+  }
+  .toast.show { opacity: 1; }
+  .section-title {
+    font-size: clamp(0.9rem, 2.8vw, 1rem); color: #075e54;
+    margin-bottom: 12px; padding-bottom: 6px; border-bottom: 2px solid #25d366;
+  }
+  @media (max-width: 850px) {
+    .content { grid-template-columns: 1fr; }
+    .form-area { border-right: none; border-bottom: 1px solid #e0e0e0; }
+    .preview-area { position: sticky; top: 0; z-index: 10; }
+  }
+  @media (max-width: 600px) {
+    body { padding: 8px; }
+    .template-selector { grid-template-columns: 1fr; }
+    .actions { flex-direction: column; }
+    button.action { flex: 1 1 100%; width: 100%; }
+    .preview-box { min-height: 180px; max-height: 400px; }
+  }
+  @media (max-width: 400px) {
+    header h1 { font-size: 1rem; }
+    header p { font-size: 0.75rem; }
+    .template-btn { font-size: 0.8rem; padding: 10px 8px; }
+    label { font-size: 0.8rem; }
+    select, input { font-size: 0.9rem; padding: 10px 12px; }
+  }
+  @media (prefers-color-scheme: dark) {
+    .form-area { background: #1e1e1e; }
+    .preview-area { background: #2d2d2d; }
+    label { color: #25d366; }
+    select, input { background: #333; color: #fff; border-color: #555; }
+    .template-btn { background: #333; color: #fff; border-color: #555; }
+    .section-title { color: #25d366; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    * { transition: none !important; animation: none !important; }
+  }
+  button:focus-visible, input:focus-visible, select:focus-visible { outline: 3px solid #25d366; outline-offset: 2px; }
+</style>
+</head>
+<body>
+
+<div class="container">
+  <header>
+    <div class="icon">💬</div>
+    <div>
+      <h1>Gerador de Templates WhatsApp</h1>
+      <p>Preencha os dados e copie a mensagem pronta</p>
+    </div>
+  </header>
+
+  <div class="content">
+    <div class="form-area">
+      <div class="section-title">1️⃣ Escolha o Template</div>
+      <div class="template-selector">
+        <button class="template-btn active" data-tpl="lembrete">📅 Lembrete 3 dias</button>
+        <button class="template-btn" data-tpl="hoje">⏳ Vence Hoje</button>
+        <button class="template-btn" data-tpl="suspensao">⚠️ Suspensão</button>
+        <button class="template-btn" data-tpl="confirmacao">✅ Confirmação</button>
+        <button class="template-btn" data-tpl="bemvindo">🎉 Bem-vindo / Cadastro</button>
+      </div>
+
+      <div class="section-title">2️⃣ Preencha os Dados</div>
+      <label for="nome">Nome do Cliente</label>
+      <input type="text" id="nome" placeholder="Ex: João Silva" value="João Silva">
+      <label for="tipo">Tipo / Produto</label>
+      <input type="text" id="tipo" placeholder="Ex: Plano Premium Mensal" value="Plano Premium Mensal">
+      <label for="dataVenc">Data de Vencimento</label>
+      <input type="date" id="dataVenc">
+      <label for="valor">Valor (R$)</label>
+      <input type="text" id="valor" placeholder="Ex: 29,90" value="29,90">
+      <label for="chavePix">Chave PIX</label>
+      <input type="text" id="chavePix" placeholder="Ex: contato@empresa.com" value="contato@empresa.com">
+    </div>
+
+    <div class="preview-area">
+      <div class="section-title">👁️ Pré-visualização</div>
+      <div class="preview-box" id="preview"></div>
+      <div class="actions">
+        <button class="action btn-copy" onclick="copiarFormatado()">📋 Copiar Formatado</button>
+        <button class="action btn-copy-raw" onclick="copiarRaw()">📄 Copiar Raw</button>
+      </div>
+      <div class="actions">
+        <button class="action btn-clear" onclick="limparCampos()">🗑️ Limpar Campos</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast">Copiado!</div>
+
+<script>
+const templates = {
+  lembrete: `✅ *Lembrete de Renovação - {tipo}*\n\nOlá, *{nome}*.\n\nInformamos que o seu acesso ao serviço {tipo} vence em 3 dias ({dataVenc}).\n\nValor: R$ {valor}\n🔗 *PIX:*\n{chavePix}\n\n👉 _Aviso: Após realizar o pagamento, envie o comprovante para este WhatsApp._`,
+  hoje: `⏳ *Vencimento Hoje - {tipo}*\n\nOlá, *{nome}*.\n\nSeu acesso ao {tipo} vence hoje. Seguem os dados para renovação imediata:\n\nValor: R$ {valor}\nVencimento: {dataVenc}\n🔗 *PIX:*\n{chavePix}\n\n👉 _Aviso: Para evitar a suspensão do sinal, por favor envie o comprovante após o pagamento._`,
+  suspensao: `⚠️ *Aviso de Suspensão - {tipo}*\n\nOlá, *{nome}*.\n\nIdentificamos que a sua assinatura do plano {tipo} expirou e o sinal foi suspenso. Para reativar agora, utilize os dados abaixo:\n\nValor: R$ {valor}\nVencido em: {dataVenc}\n🔗 *PIX:*\n{chavePix}\n\n👉 *Atenção:* Assim que enviar o comprovante de pagamento, o sistema processará a reativação automática.`,
+  confirmacao: `✅ *Pagamento Confirmado!*\n\nOlá, *{nome}* \n\nRecebemos o pagamento do seu pedido *{tipo}* com sucesso \n\n💰 Valor pago: *R$ {valor}*\n\nSeu pagamento já foi confirmado e agradecemos pela preferência!\n\nEsperamos que você ame seus produtos!`,
+  bemvindo: `✅ *Pedido Realizado com Sucesso!*\n\nOlá, *{nome}* \n\nSeu pedido foi realizado com sucesso 🛍️\n\n📦 *Resumo do Pedido:*\nProduto: {tipo}\n💰 Valor: R$ {valor}\n📅 Vencimento: {dataVenc}\n\n🔗 *PIX:*\n{chavePix}\nFicamos muito felizes em ter você conosco!`
+};
+
+let templateAtual = 'lembrete';
+
+function formatarData(data) {
+  if (!data) return '---';
+  const [y, m, d] = data.split('-');
+  return `${d}/${m}/${y}`;
+}
+
+function gerarMensagem() {
+  const dados = {
+    nome: document.getElementById('nome').value || '{nome}',
+    tipo: document.getElementById('tipo').value || '{tipo}',
+    dataVenc: formatarData(document.getElementById('dataVenc').value),
+    valor: document.getElementById('valor').value || '{valor}',
+    chavePix: document.getElementById('chavePix').value || '{chavePix}'
+  };
+  let msg = templates[templateAtual];
+  for (const chave in dados) {
+    msg = msg.replace(new RegExp(`\\{${chave}\\}`, 'g'), dados[chave]);
+  }
+  return msg;
+}
+
+function renderPreview() {
+  const msg = gerarMensagem();
+  const html = msg.replace(/\*([^*]+)\*/g, '<strong>$1</strong>').replace(/_([^_]+)_/g, '<em>$1</em>').replace(/\n/g, '<br>');
+  document.getElementById('preview').innerHTML = html;
+}
+
+function showToast(texto) {
+  const t = document.getElementById('toast');
+  t.textContent = texto;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+// FUNÇÃO DE CÓPIA UNIVERSAL (Funciona em file:// e HTTPS)
+function copiarTexto(texto, mensagemSucesso) {
+  if (navigator.clipboard && window.isSecureContext) {
+    navigator.clipboard.writeText(texto).then(() => showToast(mensagemSucesso))
+    .catch(() => fallbackCopy(texto, mensagemSucesso));
+  } else {
+    fallbackCopy(texto, mensagemSucesso);
+  }
+}
+
+function fallbackCopy(texto, mensagemSucesso) {
+  const textArea = document.createElement("textarea");
+  textArea.value = texto;
+  textArea.style.position = "fixed";
+  textArea.style.left = "-9999px";
+  textArea.style.top = "0";
+  document.body.appendChild(textArea);
+  textArea.focus();
+  textArea.select();
+  try {
+    document.execCommand('copy');
+    showToast(mensagemSucesso);
+  } catch (err) {
+    showToast('❌ Erro ao copiar. Selecione e copie manualmente.');
+  }
+  document.body.removeChild(textArea);
+}
+
+function copiarFormatado() {
+  copiarTexto(gerarMensagem(), '✅ Copiado! Cole no WhatsApp');
+}
+
+function copiarRaw() {
+  copiarTexto(gerarMensagem(), '📄 Texto bruto copiado');
+}
+
+function limparCampos() {
+  ['nome','tipo','dataVenc','valor','chavePix'].forEach(id => {
+    document.getElementById(id).value = '';
+  });
+  renderPreview();
+}
+
+document.querySelectorAll('.template-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.template-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    templateAtual = btn.dataset.tpl;
+    renderPreview();
+  });
+});
+
+document.querySelectorAll('input').forEach(inp => {
+  inp.addEventListener('input', renderPreview);
+});
+
+const hoje = new Date();
+hoje.setDate(hoje.getDate() + 3);
+document.getElementById('dataVenc').value = hoje.toISOString().split('T')[0];
+
+renderPreview();
+</script>
+</body>
+</html>
